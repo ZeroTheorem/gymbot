@@ -17,6 +17,7 @@ import (
 const (
 	msg  = "<b>%v</b> <i>kg</i> - <b>%v</b> <i>rep.</i> | <b>%v</b> <i>exp</i>.\n"
 	msg2 = "<i>Your current level:</i> <b>%v</b>\n<i>The next level</i> <b>%v</b>. <i>Remain</i> <b>%v</b> <i>exp.</i>"
+	msg4 = "<i>Your current level:</i> <b>%v</b>\n<i>You've reached the maximum level! Your exp:</i> <b>%v</b>\n<i>Congratulations!</i>🎉"
 	msg3 = "\n<i>Total</i>: <b>%v</b> <i>exp.</i>"
 )
 
@@ -38,7 +39,6 @@ var (
 	actualExercise string
 	expPerTraning  int64
 	ChooseExercise bool
-	Level          string
 )
 
 func main() {
@@ -154,25 +154,24 @@ func getExp() int64 {
 func checkLevel(c tele.Context, exp int64) {
 	switch {
 	case exp >= L10:
-		Level = "Ultimate"
+		c.Send(fmt.Sprintf(msg4, "Toji Fushiguro", exp))
 	case exp >= L9:
-		Level = "Legend"
+		c.Send(fmt.Sprintf(msg2, "Saitama (One Punch Man)", "Zeno-sama (Dragon Ball)", L10-exp))
 	case exp >= L8:
-		Level = "Master"
+		c.Send(fmt.Sprintf(msg2, "Gojo Satoru (Jujutsu Kaisen)", "Saitama (One Punch Man)", L9-exp))
 	case exp >= L7:
-		Level = "Pro"
+		c.Send(fmt.Sprintf(msg2, "Madara Uchiha (Naruto)", "Gojo Satoru (Jujutsu Kaisen)", L8-exp))
 	case exp >= L6:
-		Level = "Expert"
+		c.Send(fmt.Sprintf(msg2, "Whitebeard (One Piece)", "Madara Uchiha (Naruto)", L7-exp))
 	case exp >= L5:
-		Level = "Advanced"
+		c.Send(fmt.Sprintf(msg2, "Escanor (Seven Deadly Sins)", "Whitebeard (One Piece)", L6-exp))
 	case exp >= L4:
-		Level = "Intermediate"
+		c.Send(fmt.Sprintf(msg2, "All Might (My Hero Academia)", "Escanor (Seven Deadly Sins)", L5-exp))
 	case exp >= L3:
-		Level = "Beginner"
+		c.Send(fmt.Sprintf(msg2, "Levi Ackerman (Attack on Titan)", "All Might (My Hero Academia)", L4-exp))
 	case exp >= L2:
-		c.Send(fmt.Sprintf(msg2, "Newbie", "Beginner", L3-exp))
+		c.Send(fmt.Sprintf(msg2, "Trafalgar Law (One Piece)", "Levi Ackerman (Attack on Titan)", L3-exp))
 	default:
-		c.Send(fmt.Sprintf(msg2, "Noob", "Newbie", L2-exp))
+		c.Send(fmt.Sprintf(msg2, "Killua Zoldyck (Hunter x Hunter)", "Trafalgar Law (One Piece)", L2-exp))
 	}
-
 }
