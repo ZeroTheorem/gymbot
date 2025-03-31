@@ -65,8 +65,7 @@ func main() {
 		expPerTraning = 0
 		builder.Reset()
 		menu.Selector.InlineKeyboard[0][0].Text = "Choose exercise"
-		c.Send("<i>Reset compleated!</i>")
-		return c.Send("<i>Start working out right now!</i>", menu.Selector)
+		return c.Send("<i>Reset compleated!</i>")
 	})
 
 	b.Handle("/cmpl", func(c tele.Context) error {
@@ -84,8 +83,7 @@ func main() {
 		expPerTraning = 0
 		builder.Reset()
 		menu.Selector.InlineKeyboard[0][0].Text = "Choose exercise"
-		return c.Send("<i>Start working out right now!</i>", menu.Selector)
-
+		return nil
 	})
 
 	b.Handle("/cl", func(c tele.Context) error {
