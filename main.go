@@ -87,6 +87,13 @@ func main() {
 		return c.Send("<i>Start working out right now!</i>", menu.Selector)
 
 	})
+
+	b.Handle("/cl", func(c tele.Context) error {
+		exp := getExp()
+		checkLevel(c, exp)
+		return c.Send(fmt.Sprintf("<i>Your exp:</i> <b>%v</b>", exp))
+
+	})
 	b.Handle(menu.ChooseExerciseBtn, func(c tele.Context) error {
 		ChooseExercise = true
 		return c.Send("<i>Enter the name of the exercise</i>")
