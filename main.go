@@ -100,7 +100,6 @@ func main() {
 		switch {
 		case ChooseExercise:
 			actualExercise = c.Message().Text
-			ChooseExercise = false
 			menu.Selector.InlineKeyboard[0][0].Text = "Change exercise"
 			builder.WriteString(fmt.Sprintf("\n<i>%v:</i>\n", actualExercise))
 			return c.Send(fmt.Sprintf("<i>Exercise</i>: <b>%v</b>\n<i>Good luck with your approach, bro.</i>", actualExercise), menu.Selector)
