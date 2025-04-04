@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -19,19 +20,7 @@ const (
 	msg2 = "<i>Your current level:</i> <b>%v</b>\n<i>The next level</i> <b>%v</b>. <i>Remain</i> <b>%v</b> <i>exp.</i>"
 	msg4 = "<i>Your current level:</i> <b>%v</b>\n<i>You've reached the maximum level! Your exp:</i> <b>%v</b>\n<i>Congratulations!</i>🎉"
 	msg3 = "\n<i>Total</i>: <b>%v</b> <i>exp.</i>"
-)
-
-const (
-	L1  int64 = 0
-	L2  int64 = 100_000
-	L3  int64 = 300_000
-	L4  int64 = 600_000
-	L5  int64 = 100_000_000
-	L6  int64 = 100_500_000
-	L7  int64 = 200_100_000
-	L8  int64 = 200_800_000
-	L9  int64 = 300_600_000
-	L10 int64 = 400_500_000
+	msg5 = "<i>lvl:</i> <b>%v</b>\n<i>To the next level:</i> <b>%v</b> <i>exp</i>."
 )
 
 var (
@@ -76,8 +65,7 @@ func main() {
 		exp := getExp()
 		actualExp := exp + expPerTraning
 		writeExp(actualExp)
-		checkLevel(c, actualExp)
-
+		c.Send(fmt.Sprintf(msg5, calculateLevel(actualExp), xpToNextLevel(actualExp)))
 		// Reset to default settings
 		expPerTraning = 0
 		builder.Reset()
@@ -87,8 +75,8 @@ func main() {
 
 	b.Handle("/cl", func(c tele.Context) error {
 		exp := getExp()
-		checkLevel(c, exp)
-		return c.Send(fmt.Sprintf("<i>Your exp:</i> <b>%v</b>", exp))
+		actualLvl := calculateLevel(exp)
+		return c.Send(fmt.Sprintf(msg5, actualLvl, xpToNextLevel(exp)))
 
 	})
 	b.Handle(menu.ChooseExerciseBtn, func(c tele.Context) error {
@@ -155,27 +143,12 @@ func getExp() int64 {
 
 }
 
-func checkLevel(c tele.Context, exp int64) {
-	switch {
-	case exp >= L10:
-		c.Send(fmt.Sprintf(msg4, "Toji Fushiguro", exp))
-	case exp >= L9:
-		c.Send(fmt.Sprintf(msg2, "Saitama (One Punch Man)", "Zeno-sama (Dragon Ball)", L10-exp))
-	case exp >= L8:
-		c.Send(fmt.Sprintf(msg2, "Gojo Satoru (Jujutsu Kaisen)", "Saitama (One Punch Man)", L9-exp))
-	case exp >= L7:
-		c.Send(fmt.Sprintf(msg2, "Madara Uchiha (Naruto)", "Gojo Satoru (Jujutsu Kaisen)", L8-exp))
-	case exp >= L6:
-		c.Send(fmt.Sprintf(msg2, "Whitebeard (One Piece)", "Madara Uchiha (Naruto)", L7-exp))
-	case exp >= L5:
-		c.Send(fmt.Sprintf(msg2, "Escanor (Seven Deadly Sins)", "Whitebeard (One Piece)", L6-exp))
-	case exp >= L4:
-		c.Send(fmt.Sprintf(msg2, "All Might (My Hero Academia)", "Escanor (Seven Deadly Sins)", L5-exp))
-	case exp >= L3:
-		c.Send(fmt.Sprintf(msg2, "Levi Ackerman (Attack on Titan)", "All Might (My Hero Academia)", L4-exp))
-	case exp >= L2:
-		c.Send(fmt.Sprintf(msg2, "Trafalgar Law (One Piece)", "Levi Ackerman (Attack on Titan)", L3-exp))
-	default:
-		c.Send(fmt.Sprintf(msg2, "Killua Zoldyck (Hunter x Hunter)", "Trafalgar Law (One Piece)", L2-exp))
-	}
+func calculateLevel(xp int64) int64 {
+	return int64(math.Floor(math.Sqrt(float64(xp) / 400)))
+}
+
+func xpToNextLevel(xp int64) int64 {
+	level := calculateLevel(xp)
+	nextLevelXP := (level + 1) * (level + 1) * 400
+	return nextLevelXP - xp
 }
