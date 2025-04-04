@@ -57,11 +57,11 @@ func main() {
 	menu := markups.CreateMenuSelector()
 
 	b.Handle("/start", func(c tele.Context) error {
+		ChooseExercise = false
 		return c.Send("<i>Start working out right now!</i>", menu.Selector)
 	})
 
 	b.Handle("/reset", func(c tele.Context) error {
-		ChooseExercise = true
 		expPerTraning = 0
 		builder.Reset()
 		menu.Selector.InlineKeyboard[0][0].Text = "Choose exercise"
@@ -79,7 +79,6 @@ func main() {
 		checkLevel(c, actualExp)
 
 		// Reset to default settings
-		ChooseExercise = true
 		expPerTraning = 0
 		builder.Reset()
 		menu.Selector.InlineKeyboard[0][0].Text = "Choose exercise"
