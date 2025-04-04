@@ -20,7 +20,11 @@ const (
 	msg2 = "<i>Your current level:</i> <b>%v</b>\n<i>The next level</i> <b>%v</b>. <i>Remain</i> <b>%v</b> <i>exp.</i>"
 	msg4 = "<i>Your current level:</i> <b>%v</b>\n<i>You've reached the maximum level! Your exp:</i> <b>%v</b>\n<i>Congratulations!</i>🎉"
 	msg3 = "\n<i>Total</i>: <b>%v</b> <i>exp.</i>"
-	msg5 = "<i>lvl:</i> <b>%v</b>\n<i>To the next level:</i> <b>%v</b> <i>exp</i>."
+	msg5 = `
+<i>level: <b>%v</b></i>
+
+<b>%v/%v</b> <i>exp</i>. | <b>%v%%</b>
+`
 )
 
 var (
@@ -65,7 +69,8 @@ func main() {
 		exp := getExp()
 		actualExp := exp + expPerTraning
 		writeExp(actualExp)
-		c.Send(fmt.Sprintf(msg5, calculateLevel(actualExp), xpToNextLevel(actualExp)))
+		xpToNextlvl := xpToNextLevel(actualExp)
+		c.Send(fmt.Sprintf(msg5, calculateLevel(actualExp), exp, xpToNextlvl, (exp/xpToNextlvl)*100))
 		// Reset to default settings
 		expPerTraning = 0
 		builder.Reset()
@@ -75,8 +80,8 @@ func main() {
 
 	b.Handle("/cl", func(c tele.Context) error {
 		exp := getExp()
-		actualLvl := calculateLevel(exp)
-		return c.Send(fmt.Sprintf(msg5, actualLvl, xpToNextLevel(exp)))
+		xpToNextlvl := xpToNextLevel(exp)
+		return c.Send(fmt.Sprintf(msg5, calculateLevel(exp), exp, xpToNextlvl, (exp/xpToNextlvl)*100))
 
 	})
 	b.Handle(menu.ChooseExerciseBtn, func(c tele.Context) error {
@@ -150,5 +155,5 @@ func calculateLevel(xp int64) int64 {
 func xpToNextLevel(xp int64) int64 {
 	level := calculateLevel(xp)
 	nextLevelXP := (level + 1) * (level + 1) * 400
-	return nextLevelXP - xp
+	return nextLevelXP
 }
