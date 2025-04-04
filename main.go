@@ -23,7 +23,7 @@ const (
 	msg5 = `
 <i>level: <b>%v</b></i>
 
-<b>%v/%v</b> <i>exp</i>. | <b>%v%%</b>
+<b>%v/%v</b> <i>exp</i>. | <b>%.2f%%</b>
 `
 )
 
@@ -70,7 +70,7 @@ func main() {
 		actualExp := exp + expPerTraning
 		writeExp(actualExp)
 		xpToNextlvl := xpToNextLevel(actualExp)
-		c.Send(fmt.Sprintf(msg5, calculateLevel(actualExp), exp, xpToNextlvl, (actualExp/xpToNextlvl)*100))
+		c.Send(fmt.Sprintf(msg5, calculateLevel(actualExp), exp, xpToNextlvl, (float64(exp)/float64(xpToNextlvl))*100))
 		// Reset to default settings
 		expPerTraning = 0
 		builder.Reset()
