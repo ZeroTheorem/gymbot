@@ -70,7 +70,7 @@ func main() {
 		actualExp := exp + expPerTraning
 		writeExp(actualExp)
 		xpToNextlvl := xpToNextLevel(actualExp)
-		c.Send(fmt.Sprintf(msg5, calculateLevel(actualExp), exp, xpToNextlvl, (exp/xpToNextlvl)*100))
+		c.Send(fmt.Sprintf(msg5, calculateLevel(actualExp), exp, xpToNextlvl, (actualExp/xpToNextlvl)*100))
 		// Reset to default settings
 		expPerTraning = 0
 		builder.Reset()
@@ -81,7 +81,7 @@ func main() {
 	b.Handle("/cl", func(c tele.Context) error {
 		exp := getExp()
 		xpToNextlvl := xpToNextLevel(exp)
-		return c.Send(fmt.Sprintf(msg5, calculateLevel(exp), exp, xpToNextlvl, (exp/xpToNextlvl)*100))
+		return c.Send(fmt.Sprintf(msg5, calculateLevel(exp), exp, xpToNextlvl, (float64(exp)/float64(xpToNextlvl))*100))
 
 	})
 	b.Handle(menu.ChooseExerciseBtn, func(c tele.Context) error {
