@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"log"
-	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -32,7 +31,7 @@ var (
 
 func main() {
 	pref := tele.Settings{
-		Token:     "8137726417:AAEcQP9p_ejkUM9KyRvofUzQl0iNJvrT9Fw",
+		Token:     "5881448051:AAGnJFe2NRnfochJ91PRw6NW73Fu4ufbXrk",
 		Poller:    &tele.LongPoller{Timeout: 10 * time.Second},
 		ParseMode: tele.ModeHTML,
 	}
@@ -62,10 +61,19 @@ func main() {
 		c.Send(builder.String())
 
 		// Update user exp and check current lvl
-		exp := getExp()
-		actualExp := exp + expPerTraning
+		data := getData()
+		currentLvl := data[0]
+		prevExp := data[1]
+		actualExp := prevExp + expPerTraning
+		xpForNextLvl := xpToNextLevel(currentLvl)
+		for actualExp >= xpForNextLvl {
+			currentLvl++
+			actualExp = actualExp - xpForNextLvl
+			xpForNextLvl = xpToNextLevel(currentLvl)
+		}
 		writeExp(actualExp)
-		c.Send(fmt.Sprintf(msg5, calculateLevel(actualExp), xpToNextLevel(actualExp)))
+		c.Send(fmt.Sprintf(msg5, currentLvl, actualExp))
+
 		// Reset to default settings
 		expPerTraning = 0
 		builder.Reset()
@@ -74,10 +82,8 @@ func main() {
 	})
 
 	b.Handle("/cl", func(c tele.Context) error {
-		exp := getExp()
-		actualLvl := calculateLevel(exp)
-		return c.Send(fmt.Sprintf(msg5, actualLvl, xpToNextLevel(exp)))
-
+		data := getData()
+		return c.Send(fmt.Sprintf(msg5, data[0], xpToNextLevel(exp)))
 	})
 	b.Handle(menu.ChooseExerciseBtn, func(c tele.Context) error {
 		ChooseExercise = true
@@ -123,32 +129,29 @@ func writeExp(exp int64) {
 	}
 }
 
-func getExp() int64 {
+func getData() [2]int64 {
 	f, err := os.OpenFile("data.txt", os.O_RDONLY, 0)
 	if err != nil {
 		fmt.Printf("error opened file: %v", err)
-		return 0
+		return [2]int64{}
 	}
 	defer f.Close()
-	var exp string
+	var data [2]int64
 	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		exp = scanner.Text()
+	for i := 0; scanner.Scan(); i++ {
+		number := scanner.Text()
+		numberConv, err := strconv.ParseInt(number, 10, 64)
+		if err != nil {
+			return [2]int64{}
+		}
+		data[i] = numberConv
 	}
-	expInt, err := strconv.ParseInt(exp, 10, 64)
-	if err != nil {
-		return 0
-	}
-	return expInt
+	fmt.Println(data)
+	return data
 
 }
 
-func calculateLevel(xp int64) int64 {
-	return int64(math.Floor(math.Sqrt(float64(xp) / 400)))
-}
-
-func xpToNextLevel(xp int64) int64 {
-	level := calculateLevel(xp)
+func xpToNextLevel(level int64) int64 {
 	nextLevelXP := (level + 1) * (level + 1) * 400
-	return nextLevelXP - xp
+	return nextLevelXP
 }
