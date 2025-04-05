@@ -19,7 +19,11 @@ const (
 	msg2 = "<i>Your current level:</i> <b>%v</b>\n<i>The next level</i> <b>%v</b>. <i>Remain</i> <b>%v</b> <i>exp.</i>"
 	msg4 = "<i>Your current level:</i> <b>%v</b>\n<i>You've reached the maximum level! Your exp:</i> <b>%v</b>\n<i>Congratulations!</i>🎉"
 	msg3 = "\n<i>Total</i>: <b>%v</b> <i>exp.</i>"
-	msg5 = "<i>lvl:</i> <b>%v</b>\n<i>To the next level:</i> <b>%v</b> <i>exp</i>."
+	msg5 = `
+<i>level: <b>%v</b></i>
+
+<b>%v/%v</b> <i>exp</i>. | <b>%.2f%%</b>
+`
 )
 
 var (
@@ -71,8 +75,9 @@ func main() {
 			actualExp = actualExp - xpForNextLvl
 			xpForNextLvl = xpToNextLevel(currentLvl)
 		}
-		writeExp(actualExp)
-		c.Send(fmt.Sprintf(msg5, currentLvl, actualExp))
+		fmt.Println(actualExp)
+		writeData(currentLvl, actualExp)
+		c.Send(fmt.Sprintf(msg5, currentLvl, actualExp, xpForNextLvl, (float64(actualExp) / float64(xpForNextLvl) * 100)))
 
 		// Reset to default settings
 		expPerTraning = 0
@@ -83,7 +88,10 @@ func main() {
 
 	b.Handle("/cl", func(c tele.Context) error {
 		data := getData()
-		return c.Send(fmt.Sprintf(msg5, data[0], xpToNextLevel(exp)))
+		currentLvl := data[0]
+		currentXp := data[1]
+		xpForNextLvl := xpToNextLevel(currentLvl)
+		return c.Send(fmt.Sprintf(msg5, currentLvl, currentXp, xpForNextLvl, (float64(currentXp) / float64(xpForNextLvl) * 100)))
 	})
 	b.Handle(menu.ChooseExerciseBtn, func(c tele.Context) error {
 		ChooseExercise = true
@@ -115,18 +123,19 @@ func main() {
 	})
 	b.Start()
 }
-func writeExp(exp int64) {
+func writeData(lvl, exp int64) {
 	f, err := os.OpenFile("data.txt", os.O_WRONLY, 0666)
 	if err != nil {
 		fmt.Printf("error opened file: %v", err)
 		return
 	}
 	defer f.Close()
-	_, err = f.WriteString(fmt.Sprintf("%v", exp))
+	_, err = f.WriteString(fmt.Sprintf("%v\n%v\n", lvl, exp))
 	if err != nil {
 		fmt.Printf("error write to file: %v", err)
 		return
 	}
+
 }
 
 func getData() [2]int64 {
