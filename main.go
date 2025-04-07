@@ -72,7 +72,8 @@ func main() {
 		// write data to store
 		writeData(currentLvl, actualExp)
 		percent := getPercent(actualExp, xpForNextLvl)
-		c.Send(fmt.Sprintf(Msg3, currentLvl, actualExp,
+		c.Send(fmt.Sprintf(Msg3,
+			currentLvl, defineRank(currentLvl), actualExp,
 			xpForNextLvl, generateProgressBar(int(percent)), percent))
 
 		// Reset to default settings
@@ -91,7 +92,8 @@ func main() {
 		currentXp := data[1]
 		xpForNextLvl := xpToNextLevel(currentLvl)
 		percent := getPercent(currentXp, xpForNextLvl)
-		return c.Send(fmt.Sprintf(Msg3, currentLvl, currentXp,
+		return c.Send(fmt.Sprintf(Msg3,
+			currentLvl, defineRank(currentLvl), currentXp,
 			xpForNextLvl, generateProgressBar(int(percent)), percent))
 	})
 
@@ -129,4 +131,13 @@ func main() {
 
 	})
 	b.Start()
+}
+
+func defineRank(lvl int64) string {
+	switch {
+	case lvl >= 100:
+		return "<i>Rank:</i> <b>D</b> <i>(next rank</i> <b>C</b> <i>on level 200)</i>"
+	default:
+		return "<i>Rank:</i> <b>E</b> <i>(next rank</i> <b>D</b> <i>on level 100)</i>"
+	}
 }

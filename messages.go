@@ -5,6 +5,7 @@ const (
 	Msg2 = "\n<i>Total</i>: <b>%v</b> <i>exp.</i>"
 	Msg3 = `
 <i>level: <b>%v</b></i>
+%v
 
 <b>%v/%v</b> <i>exp</i>.
 %v <b>%.2f%%</b>
