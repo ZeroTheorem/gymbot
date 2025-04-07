@@ -135,9 +135,19 @@ func main() {
 
 func defineRank(lvl int64) string {
 	switch {
+	case lvl >= 300:
+		return "<i>Rank:</i> <b>S+</b>"
+	case lvl >= 250:
+		return "<i>Rank:</i> <b>S</b> <i>(next rank</i> <b>S+</b> <i>on level 300)</i>"
+	case lvl >= 200:
+		return "<i>Rank:</i> <b>A</b> <i>(next rank</i> <b>S</b> <i>on level 250)</i>"
+	case lvl >= 150:
+		return "<i>Rank:</i> <b>B</b> <i>(next rank</i> <b>A</b> <i>on level 200)</i>"
 	case lvl >= 100:
-		return "<i>Rank:</i> <b>D</b> <i>(next rank</i> <b>C</b> <i>on level 200)</i>"
+		return "<i>Rank:</i> <b>C</b> <i>(next rank</i> <b>B</b> <i>on level 150)</i>"
+	case lvl >= 50:
+		return "<i>Rank:</i> <b>D</b> <i>(next rank</i> <b>C</b> <i>on level 100)</i>"
 	default:
-		return "<i>Rank:</i> <b>E</b> <i>(next rank</i> <b>D</b> <i>on level 100)</i>"
+		return "<i>Rank:</i> <b>E</b> <i>(next rank</i> <b>D</b> <i>on level 50)</i>"
 	}
 }
