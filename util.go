@@ -3,7 +3,7 @@ package main
 import "strings"
 
 func xpToNextLevel(level int64) int64 {
-	nextLevelXP := (level + 1) * (level + 1) * 100
+	nextLevelXP := (level + 1) * (level + 1) * 20
 	return nextLevelXP
 }
 func generateProgressBar(percent int) string {
