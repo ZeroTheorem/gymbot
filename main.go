@@ -15,7 +15,8 @@ var (
 	builder        strings.Builder
 	actualExercise string
 	expPerTraning  int64
-	ChooseExercise bool
+	chooseExercise bool
+	traning        bool
 )
 
 func main() {
@@ -34,12 +35,15 @@ func main() {
 	menu := markups.CreateMenuSelector()
 
 	b.Handle("/start", func(c tele.Context) error {
-		ChooseExercise = false
+		actualExercise = ""
+		chooseExercise = false
+		traning = false
 		return c.Send("<i>Start working out right now!</i>", menu.Selector)
 	})
 
 	b.Handle("/reset", func(c tele.Context) error {
 		expPerTraning = 0
+		actualExercise = ""
 		builder.Reset()
 		menu.Selector.InlineKeyboard[0][0].Text = "Choose exercise"
 		return c.Send("<i>Reset compleated!</i>")
@@ -75,7 +79,9 @@ func main() {
 		expPerTraning = 0
 		builder.Reset()
 		menu.Selector.InlineKeyboard[0][0].Text = "Choose exercise"
-		ChooseExercise = false
+		chooseExercise = false
+		traning = false
+		actualExercise = ""
 		return nil
 	})
 
@@ -90,19 +96,21 @@ func main() {
 	})
 
 	b.Handle(menu.ChooseExerciseBtn, func(c tele.Context) error {
-		ChooseExercise = true
+		chooseExercise = true
+		traning = false
 		return c.Send("<i>Enter the name of the exercise</i>")
 	})
 
 	b.Handle(tele.OnText, func(c tele.Context) error {
 		switch {
-		case ChooseExercise:
+		case chooseExercise:
 			actualExercise = c.Message().Text
-			ChooseExercise = false
+			chooseExercise = false
+			traning = true
 			menu.Selector.InlineKeyboard[0][0].Text = "Change exercise"
 			builder.WriteString(fmt.Sprintf("\n<i>%v:</i>\n", actualExercise))
 			return c.Send(fmt.Sprintf(Msg4, actualExercise), menu.Selector)
-		default:
+		case traning:
 			data := strings.Split(c.Message().Text, " ")
 			wight, err := strconv.ParseInt(data[0], 10, 64)
 			if err != nil {
@@ -115,6 +123,8 @@ func main() {
 			expPerTraning += wight * reps
 			builder.WriteString(fmt.Sprintf(Msg1, wight, reps, wight*reps))
 			return c.Send(builder.String(), menu.Selector)
+		default:
+			return c.Send("<i>Please choose exercise!</i>", menu.Selector)
 		}
 
 	})
