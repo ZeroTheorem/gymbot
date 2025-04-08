@@ -91,7 +91,7 @@ func main() {
 
 		case isTraining:
 			input := strings.Split(c.Message().Text, " ")
-			if len(input) < 2 {
+			if len(input) != 2 {
 				return c.Send("<i>Enter two numbers: weight reps</i>")
 			}
 			weight, err1 := strconv.ParseInt(input[0], 10, 64)
