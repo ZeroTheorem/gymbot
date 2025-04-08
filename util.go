@@ -45,16 +45,16 @@ func defineRank(lvl int64) string {
 	case lvl >= 300:
 		return "<i>Rank:</i> <b>S+</b>"
 	case lvl >= 250:
-		return "<i>Rank:</i> <b>S</b> <i>(next: S+ at 300)</i>"
+		return "<i>Rank:</i> <b>S</b> <i>(next rank</i> <b>S+</b> <i>on level</i> <b>300</b><i>)</i>"
 	case lvl >= 200:
-		return "<i>Rank:</i> <b>A</b> <i>(next: S at 250)</i>"
+		return "<i>Rank:</i> <b>A</b> <i>(next rank</i> <b>S</b> <i>on level</i> <b>250</b><i>)</i>"
 	case lvl >= 150:
-		return "<i>Rank:</i> <b>B</b> <i>(next: A at 200)</i>"
+		return "<i>Rank:</i> <b>B</b> <i>(next rank</i> <b>A</b> <i>on level</i> <b>200</b><i>)</i>"
 	case lvl >= 100:
-		return "<i>Rank:</i> <b>C</b> <i>(next: B at 150)</i>"
+		return "<i>Rank:</i> <b>C</b> <i>(next rank</i> <b>B</b> <i>on level</i> <b>150</b><i>)</i>"
 	case lvl >= 50:
-		return "<i>Rank:</i> <b>D</b> <i>(next: C at 100)</i>"
+		return "<i>Rank:</i> <b>D</b> <i>(next rank</i> <b>C</b> <i>on level</i> <b>100</b><i>)</i>"
 	default:
-		return "<i>Rank:</i> <b>E</b> <i>(next: D at 50)</i>"
+		return "<i>Rank:</i> <b>E</b> <i>(next rank</i> <b>D</b> <i>on level</i> <b>50</b><i>)</i>"
 	}
 }
