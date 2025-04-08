@@ -2,31 +2,32 @@ package main
 
 import (
 	"fmt"
-	"github.com/ZeroTheorem/gymbot/markups"
-	_ "github.com/lib/pq"
-	tele "gopkg.in/telebot.v4"
 	"log"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ZeroTheorem/gymbot/markups"
+	_ "github.com/lib/pq"
+	tele "gopkg.in/telebot.v4"
 )
 
 var (
-	builder        strings.Builder
-	actualExercise string
-	expPerTraning  int64
-	chooseExercise bool
-	traning        bool
+	builder         strings.Builder
+	currentExercise string
+	sessionExp      int64
+	isChoosing      bool
+	isTraining      bool
 )
 
 func main() {
 	pref := tele.Settings{
-		Token:     "8137726417:AAEcQP9p_ejkUM9KyRvofUzQl0iNJvrT9Fw",
+		Token:     "your-token-here", // Replace with your actual token
 		Poller:    &tele.LongPoller{Timeout: 10 * time.Second},
 		ParseMode: tele.ModeHTML,
 	}
 
-	b, err := tele.NewBot(pref)
+	bot, err := tele.NewBot(pref)
 	if err != nil {
 		log.Fatal(err)
 		return
@@ -34,103 +35,103 @@ func main() {
 
 	menu := markups.CreateMenuSelector()
 
-	b.Handle("/start", func(c tele.Context) error {
-		actualExercise = ""
-		chooseExercise = false
-		traning = false
+	bot.Handle("/start", func(c tele.Context) error {
+		resetState(menu)
 		return c.Send("<i>Start working out right now!</i>", menu.Selector)
 	})
 
-	b.Handle("/reset", func(c tele.Context) error {
-		expPerTraning = 0
-		actualExercise = ""
-		builder.Reset()
-		menu.Selector.InlineKeyboard[0][0].Text = "Choose exercise"
-		return c.Send("<i>Reset compleated!</i>")
+	bot.Handle("/reset", func(c tele.Context) error {
+		resetState(menu)
+		return c.Send("<i>Reset completed!</i>")
 	})
 
-	b.Handle("/cmpl", func(c tele.Context) error {
-		// Compelat result message and send it
-		builder.WriteString(fmt.Sprintf(Msg2, expPerTraning))
+	bot.Handle("/cmpl", func(c tele.Context) error {
+		builder.WriteString(fmt.Sprintf(Msg2, sessionExp))
 		c.Send(builder.String())
 
-		// Update user exp and check current lvl
 		data := getData()
-		currentLvl := data[0]
-		prevExp := data[1]
-		actualExp := prevExp + expPerTraning
-		xpForNextLvl := xpToNextLevel(currentLvl)
-		for actualExp >= xpForNextLvl {
-			currentLvl++
-			c.Send(fmt.Sprintf(
-				"🎉 <i>Congratulations, you've reached a new level</i>: <b>%v</b>",
-				currentLvl))
-			actualExp = actualExp - xpForNextLvl
-			xpForNextLvl = xpToNextLevel(currentLvl)
+		lvl, xp := data[0], data[1]
+		newLvl, newXp, messages := updateLevel(lvl, xp, sessionExp)
+		for _, msg := range messages {
+			c.Send(msg)
 		}
 
-		// write data to store
-		writeData(currentLvl, actualExp)
-		percent := getPercent(actualExp, xpForNextLvl)
-		c.Send(fmt.Sprintf(Msg3,
-			currentLvl, defineRank(currentLvl), actualExp,
-			xpForNextLvl, generateProgressBar(int(percent)), percent))
+		writeData(newLvl, newXp)
 
-		// Reset to default settings
-		expPerTraning = 0
-		builder.Reset()
-		menu.Selector.InlineKeyboard[0][0].Text = "Choose exercise"
-		chooseExercise = false
-		traning = false
-		actualExercise = ""
+		percent := getPercent(newXp, xpToNextLevel(newLvl))
+		c.Send(fmt.Sprintf(Msg3, newLvl, defineRank(newLvl), newXp, xpToNextLevel(newLvl),
+			generateProgressBar(int(percent)), percent))
+
+		resetState(menu)
 		return nil
 	})
 
-	b.Handle("/cl", func(c tele.Context) error {
+	bot.Handle("/cl", func(c tele.Context) error {
 		data := getData()
-		currentLvl := data[0]
-		currentXp := data[1]
-		xpForNextLvl := xpToNextLevel(currentLvl)
-		percent := getPercent(currentXp, xpForNextLvl)
-		return c.Send(fmt.Sprintf(Msg3,
-			currentLvl, defineRank(currentLvl), currentXp,
-			xpForNextLvl, generateProgressBar(int(percent)), percent))
+		lvl, xp := data[0], data[1]
+		percent := getPercent(xp, xpToNextLevel(lvl))
+		return c.Send(fmt.Sprintf(Msg3, lvl, defineRank(lvl), xp,
+			xpToNextLevel(lvl), generateProgressBar(int(percent)), percent))
 	})
 
-	b.Handle(menu.ChooseExerciseBtn, func(c tele.Context) error {
-		chooseExercise = true
-		traning = false
+	bot.Handle(menu.ChooseExerciseBtn, func(c tele.Context) error {
+		isChoosing = true
+		isTraining = false
 		return c.Send("<i>Enter the name of the exercise</i>")
 	})
 
-	b.Handle(tele.OnText, func(c tele.Context) error {
+	bot.Handle(tele.OnText, func(c tele.Context) error {
 		switch {
-		case chooseExercise:
-			actualExercise = c.Message().Text
-			chooseExercise = false
-			traning = true
+		case isChoosing:
+			currentExercise = c.Message().Text
+			isChoosing = false
+			isTraining = true
 			menu.Selector.InlineKeyboard[0][0].Text = "Change exercise"
-			builder.WriteString(fmt.Sprintf("\n<i>%v:</i>\n", actualExercise))
-			return c.Send(fmt.Sprintf(Msg4, actualExercise), menu.Selector)
-		case traning:
-			data := strings.Split(c.Message().Text, " ")
-			wight, err := strconv.ParseInt(data[0], 10, 64)
-			if err != nil {
-				return c.Send("<i>Enter a number</i>")
-			}
-			reps, err := strconv.ParseInt(data[1], 10, 64)
-			if err != nil {
-				return c.Send("<i>Enter a number</i>")
-			}
-			expPerTraning += wight * reps
-			builder.WriteString(fmt.Sprintf(Msg1, wight, reps, wight*reps))
-			return c.Send(builder.String(), menu.Selector)
-		default:
-			return c.Send("<i>Please choose exercise!</i>", menu.Selector)
-		}
+			builder.WriteString(fmt.Sprintf("\n<i>%v:</i>\n", currentExercise))
+			return c.Send(fmt.Sprintf(Msg4, currentExercise), menu.Selector)
 
+		case isTraining:
+			input := strings.Split(c.Message().Text, " ")
+			if len(input) < 2 {
+				return c.Send("<i>Enter two numbers: weight reps</i>")
+			}
+			weight, err1 := strconv.ParseInt(input[0], 10, 64)
+			reps, err2 := strconv.ParseInt(input[1], 10, 64)
+			if err1 != nil || err2 != nil {
+				return c.Send("<i>Invalid input. Use numbers like: 50 10</i>")
+			}
+			exp := weight * reps
+			sessionExp += exp
+			builder.WriteString(fmt.Sprintf(Msg1, weight, reps, exp))
+			return c.Send(builder.String(), menu.Selector)
+
+		default:
+			return c.Send("<i>Please choose exercise first!</i>", menu.Selector)
+		}
 	})
-	b.Start()
+
+	bot.Start()
+}
+
+func resetState(menu *markups.SubMenu) {
+	sessionExp = 0
+	currentExercise = ""
+	isChoosing = false
+	isTraining = false
+	builder.Reset()
+	menu.Selector.InlineKeyboard[0][0].Text = "Choose exercise"
+}
+
+func updateLevel(lvl, xp, gainedXP int64) (int64, int64, []string) {
+	xp += gainedXP
+	messages := []string{}
+	for xp >= xpToNextLevel(lvl) {
+		xp -= xpToNextLevel(lvl)
+		lvl++
+		messages = append(messages,
+			fmt.Sprintf("🎉 <i>Congratulations, you've reached a new level</i>: <b>%v</b>", lvl))
+	}
+	return lvl, xp, messages
 }
 
 func defineRank(lvl int64) string {
@@ -138,16 +139,16 @@ func defineRank(lvl int64) string {
 	case lvl >= 300:
 		return "<i>Rank:</i> <b>S+</b>"
 	case lvl >= 250:
-		return "<i>Rank:</i> <b>S</b> <i>(next rank</i> <b>S+</b> <i>on level 300)</i>"
+		return "<i>Rank:</i> <b>S</b> <i>(next: S+ at 300)</i>"
 	case lvl >= 200:
-		return "<i>Rank:</i> <b>A</b> <i>(next rank</i> <b>S</b> <i>on level 250)</i>"
+		return "<i>Rank:</i> <b>A</b> <i>(next: S at 250)</i>"
 	case lvl >= 150:
-		return "<i>Rank:</i> <b>B</b> <i>(next rank</i> <b>A</b> <i>on level 200)</i>"
+		return "<i>Rank:</i> <b>B</b> <i>(next: A at 200)</i>"
 	case lvl >= 100:
-		return "<i>Rank:</i> <b>C</b> <i>(next rank</i> <b>B</b> <i>on level 150)</i>"
+		return "<i>Rank:</i> <b>C</b> <i>(next: B at 150)</i>"
 	case lvl >= 50:
-		return "<i>Rank:</i> <b>D</b> <i>(next rank</i> <b>C</b> <i>on level 100)</i>"
+		return "<i>Rank:</i> <b>D</b> <i>(next: C at 100)</i>"
 	default:
-		return "<i>Rank:</i> <b>E</b> <i>(next rank</i> <b>D</b> <i>on level 50)</i>"
+		return "<i>Rank:</i> <b>E</b> <i>(next: D at 50)</i>"
 	}
 }
