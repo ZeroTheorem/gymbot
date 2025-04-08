@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZeroTheorem/gymbot/markups"
 	_ "github.com/lib/pq"
 	tele "gopkg.in/telebot.v4"
 )
@@ -22,7 +21,7 @@ var (
 
 func main() {
 	pref := tele.Settings{
-		Token:     "your-token-here", // Replace with your actual token
+		Token:     "8137726417:AAEcQP9p_ejkUM9KyRvofUzQl0iNJvrT9Fw",
 		Poller:    &tele.LongPoller{Timeout: 10 * time.Second},
 		ParseMode: tele.ModeHTML,
 	}
@@ -33,7 +32,7 @@ func main() {
 		return
 	}
 
-	menu := markups.CreateMenuSelector()
+	menu := createMenuSelector()
 
 	bot.Handle("/start", func(c tele.Context) error {
 		resetState(menu)
@@ -111,44 +110,4 @@ func main() {
 	})
 
 	bot.Start()
-}
-
-func resetState(menu *markups.SubMenu) {
-	sessionExp = 0
-	currentExercise = ""
-	isChoosing = false
-	isTraining = false
-	builder.Reset()
-	menu.Selector.InlineKeyboard[0][0].Text = "Choose exercise"
-}
-
-func updateLevel(lvl, xp, gainedXP int64) (int64, int64, []string) {
-	xp += gainedXP
-	messages := []string{}
-	for xp >= xpToNextLevel(lvl) {
-		xp -= xpToNextLevel(lvl)
-		lvl++
-		messages = append(messages,
-			fmt.Sprintf("🎉 <i>Congratulations, you've reached a new level</i>: <b>%v</b>", lvl))
-	}
-	return lvl, xp, messages
-}
-
-func defineRank(lvl int64) string {
-	switch {
-	case lvl >= 300:
-		return "<i>Rank:</i> <b>S+</b>"
-	case lvl >= 250:
-		return "<i>Rank:</i> <b>S</b> <i>(next: S+ at 300)</i>"
-	case lvl >= 200:
-		return "<i>Rank:</i> <b>A</b> <i>(next: S at 250)</i>"
-	case lvl >= 150:
-		return "<i>Rank:</i> <b>B</b> <i>(next: A at 200)</i>"
-	case lvl >= 100:
-		return "<i>Rank:</i> <b>C</b> <i>(next: B at 150)</i>"
-	case lvl >= 50:
-		return "<i>Rank:</i> <b>D</b> <i>(next: C at 100)</i>"
-	default:
-		return "<i>Rank:</i> <b>E</b> <i>(next: D at 50)</i>"
-	}
 }

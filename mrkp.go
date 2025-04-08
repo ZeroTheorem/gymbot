@@ -1,21 +1,21 @@
-package markups
+package main
 
 import (
 	tele "gopkg.in/telebot.v4"
 )
 
-type SubMenu struct {
+type menu struct {
 	Selector          *tele.ReplyMarkup
 	ChooseExerciseBtn *tele.Btn
 }
 
-func CreateMenuSelector() *SubMenu {
+func createMenuSelector() *menu {
 	selector := &tele.ReplyMarkup{}
 	chooseExerciseBtn := selector.Data("Choose exercise", "ChooseExercise")
 	selector.Inline(
 		selector.Row(chooseExerciseBtn),
 	)
-	m := SubMenu{
+	m := menu{
 		Selector:          selector,
 		ChooseExerciseBtn: &chooseExerciseBtn,
 	}
