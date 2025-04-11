@@ -10,8 +10,8 @@ func xpToNextLevel(level int64) int64 {
 	return nextLevelXP
 }
 func generateProgressBar(percent int) string {
-	completed := percent * 23 / 100
-	bar := strings.Repeat("█", completed) + strings.Repeat("░", 23-completed)
+	completed := percent * 20 / 100
+	bar := strings.Repeat("█", completed) + strings.Repeat("░", 20-completed)
 	return bar
 }
 
