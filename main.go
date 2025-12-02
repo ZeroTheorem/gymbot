@@ -3,10 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	tele "gopkg.in/telebot.v4"
 )
@@ -20,8 +22,12 @@ var (
 )
 
 func main() {
+	err := godotenv.Load("env.env")
+	if err != nil {
+		log.Fatal(err)
+	}
 	pref := tele.Settings{
-		Token:     "8137726417:AAEcQP9p_ejkUM9KyRvofUzQl0iNJvrT9Fw",
+		Token:     os.Getenv("TOKKEN"),
 		Poller:    &tele.LongPoller{Timeout: 10 * time.Second},
 		ParseMode: tele.ModeHTML,
 	}
